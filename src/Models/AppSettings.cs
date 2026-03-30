@@ -3,7 +3,7 @@ namespace VibeVoice.Models;
 public class AppSettings
 {
     public string ApiEndpoint { get; set; } = "http://192.168.80.60:8000";
-    public int ApiTimeoutSeconds { get; set; } = 10;
+    public int ApiTimeoutSeconds { get; set; } = 120;
     public ChineseMode ChineseMode { get; set; } = ChineseMode.Traditional;
     public PunctuationMode PunctuationMode { get; set; } = PunctuationMode.Chinese;
     public string GlobalHotkey { get; set; } = "Ctrl+Alt+F8";

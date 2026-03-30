@@ -191,7 +191,7 @@ public class TranscriptionService
         try
         {
             using var client = CreateClient();
-            client.Timeout = TimeSpan.FromSeconds(4);
+            client.Timeout = TimeSpan.FromSeconds(10);
             var response = await client.GetAsync($"{baseUrl}/health");
             var body = await response.Content.ReadAsStringAsync();
 
