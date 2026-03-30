@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
+    <AssemblyName>VibeVoice</AssemblyName>
+    <RootNamespace>VibeVoice</RootNamespace>
+    <Version>1.0.0</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WPF Fluent UI -->
+    <PackageReference Include="WPF-UI" Version="3.0.5" />
+    <!-- Audio Recording -->
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <!-- SQLite -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
+    <!-- DI & Configuration & Logging -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
+    <!-- JSON -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <!-- Hotkey -->
+    <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
+    <!-- Hardcodet Tray Icon for WPF -->
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\**\*.*" />
+  </ItemGroup>
+
+</Project>
+

@@ -1,0 +1,106 @@
+<Page x:Class="VibeVoice.Views.Pages.HistoryPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:conv="clr-namespace:VibeVoice.Converters"
+      mc:Ignorable="d"
+      d:DesignHeight="580" d:DesignWidth="680"
+      Title="歷史記錄">
+
+    <Page.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:BoolToVisibilityConverter x:Key="InvBoolToVis" Parameter="Invert"/>
+    </Page.Resources>
+
+    <Grid Margin="16,16,16,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="歷史記錄" FontSize="20" FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+            <ui:Button Content="清除全部" Appearance="Secondary"
+                       Command="{Binding ClearHistoryCommand}"
+                       HorizontalAlignment="Right" Padding="12,6"/>
+        </Grid>
+
+        <!-- List -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding HistoryEntries}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="0,0,0,8" CornerRadius="8"
+                                Background="{DynamicResource ControlFillColorDefaultBrush}">
+                            <Grid Margin="16,12">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Text and meta -->
+                                <StackPanel Grid.Row="0" Grid.Column="0">
+                                    <!-- Success entry -->
+                                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap"
+                                               FontSize="14" MaxHeight="80"
+                                               Visibility="{Binding IsSuccess, Converter={StaticResource BoolToVis}}"
+                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                    <!-- Error entry -->
+                                    <TextBlock FontSize="13" Foreground="#C42B1C"
+                                               Visibility="{Binding IsSuccess, Converter={StaticResource InvBoolToVis}}">
+                                        <Run Text="❌ "/>
+                                        <Run Text="{Binding ErrorMessage}"/>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Actions -->
+                                <StackPanel Grid.Row="0" Grid.Column="1"
+                                            Orientation="Horizontal" VerticalAlignment="Top"
+                                            Margin="8,0,0,0">
+                                    <Button ToolTip="重發此文字"
+                                            Command="{Binding DataContext.ResendEntryCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Background="Transparent" BorderThickness="0"
+                                            Padding="6,4" Margin="0,0,4,0"
+                                            Visibility="{Binding IsSuccess, Converter={StaticResource BoolToVis}}">
+                                        <ui:SymbolIcon Symbol="ArrowRepeatAll20" FontSize="16"/>
+                                    </Button>
+                                    <Button ToolTip="複製"
+                                            Command="{Binding DataContext.CopyEntryCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Background="Transparent" BorderThickness="0"
+                                            Padding="6,4" Margin="0,0,4,0"
+                                            Visibility="{Binding IsSuccess, Converter={StaticResource BoolToVis}}">
+                                        <ui:SymbolIcon Symbol="Copy20" FontSize="16"/>
+                                    </Button>
+                                    <Button ToolTip="刪除"
+                                            Command="{Binding DataContext.DeleteEntryCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Background="Transparent" BorderThickness="0"
+                                            Padding="6,4" Foreground="#C42B1C">
+                                        <ui:SymbolIcon Symbol="Delete20" FontSize="16"/>
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Timestamp -->
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="{Binding CreatedAt, StringFormat='yyyy-MM-dd HH:mm:ss'}"
+                                           FontSize="11" Opacity="0.5" Margin="0,4,0,0"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+    </Grid>
+</Page>

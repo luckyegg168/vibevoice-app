@@ -1,0 +1,18 @@
+## .NET gitignore
+bin/
+obj/
+*.user
+*.suo
+.vs/
+publish/
+*.pdb
+
+## Rider
+.idea/
+
+## VS Code
+.vscode/
+
+## Build artifacts
+*.nupkg
+*.snupkg
