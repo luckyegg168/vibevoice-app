@@ -1,6 +1,6 @@
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
 using Microsoft.Extensions.Logging;
 using VibeVoice.Infrastructure;
 using VibeVoice.Models;
@@ -18,6 +18,13 @@ public class MainViewModel : ViewModelBase
     private readonly SettingsService _settingsService;
     private readonly GlobalHotkeyManager _hotkeyManager;
     private readonly ILogger<MainViewModel> _logger;
+
+    // The window that was active when the user triggered recording via hotkey.
+    // Zero when triggered from the app button (no forced focus switch).
+    private nint _recordingTargetWindow;
+
+    [DllImport("user32.dll")]
+    private static extern nint GetForegroundWindow();
 
     private string _statusText = "就緒";
     private string _previewText = string.Empty;
@@ -77,6 +84,8 @@ public class MainViewModel : ViewModelBase
     public ICommand DeleteEntryCommand { get; }
     public ICommand ClearHistoryCommand { get; }
     public ICommand CopyEntryCommand { get; }
+    public ICommand CopyPreviewCommand { get; }
+    public ICommand SendPreviewCommand { get; }
 
     public MainViewModel(
         AudioRecordingService recordingService,
@@ -97,12 +106,10 @@ public class MainViewModel : ViewModelBase
         _hotkeyManager = hotkeyManager;
         _logger = logger;
 
-        // Init from settings
         _chineseMode = settingsService.Current.ChineseMode;
         _punctuationMode = settingsService.Current.PunctuationMode;
 
-        // Commands
-        ToggleRecordingCommand = new RelayCommand(ToggleRecording, () => !IsProcessing);
+        ToggleRecordingCommand = new RelayCommand(ToggleRecordingFromButton, () => !IsProcessing);
         CheckApiStatusCommand = new AsyncRelayCommand(CheckApiStatusAsync);
         ResendEntryCommand = new RelayCommand(ResendEntry);
         DeleteEntryCommand = new RelayCommand(async o =>
@@ -111,19 +118,28 @@ public class MainViewModel : ViewModelBase
         });
         ClearHistoryCommand = new AsyncRelayCommand(ClearHistoryAsync);
         CopyEntryCommand = new RelayCommand(CopyEntry);
+        CopyPreviewCommand = new RelayCommand(() =>
+        {
+            if (!string.IsNullOrEmpty(PreviewText))
+            {
+                Clipboard.SetText(PreviewText);
+                StatusText = "已複製至剪貼簿";
+            }
+        });
+        SendPreviewCommand = new RelayCommand(() =>
+        {
+            if (!string.IsNullOrEmpty(PreviewText))
+                _sendQueueService.Enqueue(PreviewText, 0);
+        });
 
-        // Wire up audio events
         _recordingService.StateChanged += OnRecordingStateChanged;
         _recordingService.AudioLevelChanged += OnAudioLevelChanged;
 
-        // Hotkey
         _hotkeyManager.RecordingHotkeyPressed += OnHotkeyPressed;
         RegisterHotkey();
 
-        // Settings changes
         _settingsService.SettingsChanged += OnSettingsChanged;
 
-        // Initial API check
         _ = CheckApiStatusAsync();
     }
 
@@ -134,9 +150,19 @@ public class MainViewModel : ViewModelBase
             StatusText = $"快捷鍵 {hotkey} 註冊失敗";
     }
 
+    // Hotkey path — capture which window was focused BEFORE the hotkey fires
     private void OnHotkeyPressed(object? sender, EventArgs e)
     {
+        _recordingTargetWindow = GetForegroundWindow();
         Application.Current.Dispatcher.Invoke(ToggleRecording);
+    }
+
+    // Button path — no specific target window; text will appear in whatever window
+    // the user switches to before the injection runs
+    private void ToggleRecordingFromButton()
+    {
+        _recordingTargetWindow = 0;
+        ToggleRecording();
     }
 
     private void ToggleRecording()
@@ -176,10 +202,10 @@ public class MainViewModel : ViewModelBase
             return;
         }
 
-        _ = TranscribeAsync(wavBytes);
+        _ = TranscribeAsync(wavBytes, _recordingTargetWindow);
     }
 
-    private async Task TranscribeAsync(byte[] wavBytes)
+    private async Task TranscribeAsync(byte[] wavBytes, nint targetWindow)
     {
         try
         {
@@ -196,13 +222,9 @@ public class MainViewModel : ViewModelBase
                 return;
             }
 
-            // Apply Chinese conversion
             var convertedText = _conversionService.Convert(rawText, ChineseMode);
-
-            // Apply punctuation
             var finalText = PunctuationService.ApplyPunctuation(convertedText, PunctuationMode);
 
-            // Update UI
             Application.Current.Dispatcher.Invoke(() =>
             {
                 PreviewText = finalText;
@@ -210,7 +232,6 @@ public class MainViewModel : ViewModelBase
                 StatusText = "✅ 辨識完成";
             });
 
-            // Save to history
             var entry = new HistoryEntry
             {
                 Text = finalText,
@@ -221,8 +242,8 @@ public class MainViewModel : ViewModelBase
             };
             await _historyService.AddEntryAsync(entry);
 
-            // Inject text
-            _sendQueueService.Enqueue(finalText);
+            if (_settingsService.Current.AutoSendToWindow)
+                _sendQueueService.Enqueue(finalText, targetWindow);
         }
         catch (Exception ex)
         {
@@ -266,16 +287,16 @@ public class MainViewModel : ViewModelBase
     private async Task CheckApiStatusAsync()
     {
         ApiStatusText = "檢查中…";
-        var online = await _transcriptionService.CheckHealthAsync();
+        var (online, status) = await _transcriptionService.CheckHealthAsync();
         IsApiOnline = online;
-        ApiStatusText = online ? "✅ 連線正常" : "❌ 無法連線";
+        ApiStatusText = status;
     }
 
     private void ResendEntry(object? parameter)
     {
         if (parameter is HistoryEntry entry && entry.IsSuccess && !string.IsNullOrEmpty(entry.Text))
         {
-            _sendQueueService.Enqueue(entry.Text);
+            _sendQueueService.Enqueue(entry.Text, 0);
             StatusText = $"重發: {entry.DisplayText}";
         }
     }

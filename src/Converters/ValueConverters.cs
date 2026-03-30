@@ -52,18 +52,19 @@ public class NullToVisibilityConverter : IValueConverter
         => throw new NotImplementedException();
 }
 
-public class AudioLevelToWidthConverter : IValueConverter
+public class AudioLevelToWidthConverter : System.Windows.Data.IMultiValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is float f)
+        if (values.Length >= 2
+            && values[0] is float level
+            && values[1] is double containerWidth && containerWidth > 0)
         {
-            double maxWidth = parameter is string s && double.TryParse(s, out double mw) ? mw : 200.0;
-            return Math.Max(4, f * maxWidth);
+            return Math.Max(4, level * containerWidth);
         }
         return 4.0;
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         => throw new NotImplementedException();
 }

@@ -4,12 +4,13 @@ using Microsoft.Extensions.Logging;
 namespace VibeVoice.Services;
 
 /// <summary>
-/// Queues text injection requests to prevent race conditions from rapid hotkey presses.
-/// Ensures text is injected in order.
+/// Serialises text injection requests so rapid hotkey presses never interleave.
 /// </summary>
 public class SendQueueService : IDisposable
 {
-    private readonly ConcurrentQueue<string> _queue = new();
+    private readonly record struct QueueItem(string Text, nint TargetWindow);
+
+    private readonly ConcurrentQueue<QueueItem> _queue = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TextInjectionService _injectionService;
     private readonly ILogger<SendQueueService> _logger;
@@ -24,31 +25,30 @@ public class SendQueueService : IDisposable
         _logger = logger;
     }
 
-    public void Enqueue(string text)
+    /// <param name="targetWindow">Win32 HWND to focus before injecting. Pass 0 to inject into whatever window is currently active.</param>
+    public void Enqueue(string text, nint targetWindow = 0)
     {
         if (string.IsNullOrEmpty(text)) return;
-        _queue.Enqueue(text);
-        _logger.LogDebug("Queued text: {Text}", text.Length > 30 ? text[..30] + "..." : text);
+        _queue.Enqueue(new QueueItem(text, targetWindow));
+        _logger.LogDebug("Queued {Chars} chars, target=0x{Hwnd:X}", text.Length, targetWindow);
         _ = ProcessQueueAsync();
     }
 
     private async Task ProcessQueueAsync()
     {
         if (!await _semaphore.WaitAsync(0))
-            return; // Another task is already processing
+            return; // another task is already draining the queue
 
         try
         {
-            while (_queue.TryDequeue(out var text))
+            while (_queue.TryDequeue(out var item))
             {
                 if (_disposed) return;
                 try
                 {
-                    // Small delay to let the focus window regain foreground
-                    await Task.Delay(50);
-                    await _injectionService.InjectTextAsync(text);
-                    TextSent?.Invoke(this, text);
-                    _logger.LogInformation("Text sent: {Chars} chars", text.Length);
+                    await _injectionService.InjectTextAsync(item.Text, item.TargetWindow);
+                    TextSent?.Invoke(this, item.Text);
+                    _logger.LogInformation("Sent {Chars} chars", item.Text.Length);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)

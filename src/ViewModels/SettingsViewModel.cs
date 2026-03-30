@@ -15,6 +15,7 @@ public class SettingsViewModel : ViewModelBase
     private string _globalHotkey = string.Empty;
     private bool _minimizeToTray;
     private bool _startMinimized;
+    private bool _autoSendToWindow;
     private int _typeDelayMs;
     private string _saveStatusText = string.Empty;
 
@@ -32,6 +33,7 @@ public class SettingsViewModel : ViewModelBase
     public string GlobalHotkey { get => _globalHotkey; set => SetProperty(ref _globalHotkey, value); }
     public bool MinimizeToTray { get => _minimizeToTray; set => SetProperty(ref _minimizeToTray, value); }
     public bool StartMinimized { get => _startMinimized; set => SetProperty(ref _startMinimized, value); }
+    public bool AutoSendToWindow { get => _autoSendToWindow; set => SetProperty(ref _autoSendToWindow, value); }
     public int TypeDelayMs { get => _typeDelayMs; set => SetProperty(ref _typeDelayMs, value); }
     public string SaveStatusText { get => _saveStatusText; set => SetProperty(ref _saveStatusText, value); }
 
@@ -64,6 +66,7 @@ public class SettingsViewModel : ViewModelBase
         GlobalHotkey = s.GlobalHotkey;
         MinimizeToTray = s.MinimizeToTray;
         StartMinimized = s.StartMinimized;
+        AutoSendToWindow = s.AutoSendToWindow;
         TypeDelayMs = s.TypeDelayMs;
     }
 
@@ -76,6 +79,7 @@ public class SettingsViewModel : ViewModelBase
             s.GlobalHotkey = GlobalHotkey;
             s.MinimizeToTray = MinimizeToTray;
             s.StartMinimized = StartMinimized;
+            s.AutoSendToWindow = AutoSendToWindow;
             s.TypeDelayMs = Math.Clamp(TypeDelayMs, 0, 100);
         });
 
@@ -95,6 +99,7 @@ public class SettingsViewModel : ViewModelBase
         GlobalHotkey = defaults.GlobalHotkey;
         MinimizeToTray = defaults.MinimizeToTray;
         StartMinimized = defaults.StartMinimized;
+        AutoSendToWindow = defaults.AutoSendToWindow;
         TypeDelayMs = defaults.TypeDelayMs;
     }
 }

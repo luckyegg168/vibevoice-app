@@ -6,7 +6,8 @@ public class AppSettings
     public int ApiTimeoutSeconds { get; set; } = 10;
     public ChineseMode ChineseMode { get; set; } = ChineseMode.Traditional;
     public PunctuationMode PunctuationMode { get; set; } = PunctuationMode.Chinese;
-    public string GlobalHotkey { get; set; } = "Ctrl+Alt+V";
+    public string GlobalHotkey { get; set; } = "Ctrl+Alt+F8";
+    public bool AutoSendToWindow { get; set; } = true;
     public bool MinimizeToTray { get; set; } = true;
     public bool StartMinimized { get; set; } = false;
     public int HistoryMaxCount { get; set; } = 1000;

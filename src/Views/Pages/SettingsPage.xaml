@@ -5,7 +5,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       mc:Ignorable="d"
-      d:DesignHeight="580" d:DesignWidth="680"
+      d:DesignHeight="620" d:DesignWidth="680"
       Title="設定">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -27,8 +27,7 @@
 
                     <TextBlock Text="逾時時間 (秒)" FontSize="12" Opacity="0.6" Margin="0,0,0,4"/>
                     <ui:NumberBox Value="{Binding ApiTimeout}"
-                                  Minimum="1" Maximum="120" SpinButtonPlacementMode="Compact"
-                                  Margin="0,0,0,0"/>
+                                  Minimum="1" Maximum="120" SpinButtonPlacementMode="Compact"/>
                 </StackPanel>
             </ui:Card>
 
@@ -37,9 +36,17 @@
                 <StackPanel>
                     <TextBlock Text="快捷鍵" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
-                    <TextBlock Text="全域錄音快捷鍵 (例: Ctrl+Alt+V)" FontSize="12" Opacity="0.6" Margin="0,0,0,4"/>
-                    <ui:TextBox Text="{Binding GlobalHotkey, UpdateSourceTrigger=PropertyChanged}"
-                                PlaceholderText="Ctrl+Alt+V"/>
+                    <TextBlock Text="全域錄音快捷鍵（預設：Ctrl+Alt+F8）"
+                               FontSize="12" Opacity="0.6" Margin="0,0,0,2"/>
+                    <TextBlock Text="格式：Ctrl+Alt+F8 ／ Ctrl+Shift+R，修飾鍵可為 Ctrl / Alt / Shift / Win"
+                               FontSize="11" Opacity="0.45" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                    <ui:TextBox x:Name="HotkeyBox"
+                                Text="{Binding GlobalHotkey, UpdateSourceTrigger=PropertyChanged}"
+                                PlaceholderText="Ctrl+Alt+F8"
+                                Margin="0,0,0,6"/>
+                    <TextBlock FontSize="11" Opacity="0.6"
+                               Text="⚠️ 儲存後立即生效，請確保快捷鍵不與其他程式衝突"
+                               TextWrapping="Wrap"/>
                 </StackPanel>
             </ui:Card>
 
@@ -48,19 +55,21 @@
                 <StackPanel>
                     <TextBlock Text="行為設定" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
+                    <ui:ToggleSwitch Content="辨識後自動發送文字至焦點視窗"
+                                     IsChecked="{Binding AutoSendToWindow}"
+                                     Margin="0,0,0,8"/>
+
                     <ui:ToggleSwitch Content="最小化至系統匣"
                                      IsChecked="{Binding MinimizeToTray}"
                                      Margin="0,0,0,8"/>
 
                     <ui:ToggleSwitch Content="啟動時最小化"
                                      IsChecked="{Binding StartMinimized}"
-                                     Margin="0,0,0,8"/>
+                                     Margin="0,0,0,12"/>
 
-                    <StackPanel Margin="0,8,0,0">
-                        <TextBlock Text="輸入延遲 (ms，每個字符間隔)" FontSize="12" Opacity="0.6" Margin="0,0,0,4"/>
-                        <ui:NumberBox Value="{Binding TypeDelayMs}"
-                                      Minimum="0" Maximum="100" SpinButtonPlacementMode="Compact"/>
-                    </StackPanel>
+                    <TextBlock Text="發送延遲 (ms，每字符間隔)" FontSize="12" Opacity="0.6" Margin="0,0,0,4"/>
+                    <ui:NumberBox Value="{Binding TypeDelayMs}"
+                                  Minimum="0" Maximum="100" SpinButtonPlacementMode="Compact"/>
                 </StackPanel>
             </ui:Card>
 
